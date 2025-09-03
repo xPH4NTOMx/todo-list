@@ -2,27 +2,27 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>To-Do List</title>
+  <title>To-Do List Pro</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f0f0f0;
       display: flex;
       justify-content: center;
-      padding: 50px;
+      padding: 40px;
     }
     .container {
       background: white;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-      width: 400px;
+      width: 450px;
     }
     h1 {
       text-align: center;
       margin-bottom: 20px;
     }
-    input, button {
+    input, button, select {
       padding: 10px;
       margin: 5px 0;
       border-radius: 6px;
@@ -33,10 +33,15 @@
       background: #007BFF;
       color: white;
       border: none;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #0056b3;
     }
     ul {
       list-style: none;
       padding: 0;
+      margin: 10px 0;
     }
     li {
       display: flex;
@@ -49,19 +54,52 @@
     }
     li span {
       flex-grow: 1;
+      margin-left: 10px;
     }
-    li button {
-      background: red;
-      padding: 5px 10px;
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .actions button {
+      margin-left: 5px;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+    .top-controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .top-controls input {
+      flex: 1;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>📝 To-Do List</h1>
-    <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ...">
-    <button onclick="addTask()">เพิ่ม</button>
+    <h1>📝 To-Do List Pro</h1>
+    
+    <div class="top-controls">
+      <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ...">
+      <button onclick="addTask()">เพิ่ม</button>
+    </div>
+
+    <div class="top-controls">
+      <input id="searchInput" type="text" placeholder="ค้นหา...">
+      <select id="filterSelect" onchange="renderTasks()">
+        <option value="all">ทั้งหมด</option>
+        <option value="completed">เสร็จแล้ว</option>
+        <option value="pending">ยังไม่เสร็จ</option>
+      </select>
+    </div>
+
     <ul id="taskList"></ul>
+
+    <div class="top-controls">
+      <button onclick="exportTasks()">⬇ Export JSON</button>
+      <input type="file" id="importFile" accept=".json" onchange="importTasks(event)">
+    </div>
   </div>
 
   <script>
@@ -69,30 +107,96 @@
 
     function renderTasks() {
       const list = document.getElementById("taskList");
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const filter = document.getElementById("filterSelect").value;
+
       list.innerHTML = "";
-      tasks.forEach((task, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `<span>${task}</span>
-                        <button onclick="removeTask(${index})">ลบ</button>`;
-        list.appendChild(li);
-      });
+
+      tasks
+        .filter(task => task.text.toLowerCase().includes(search))
+        .filter(task => {
+          if (filter === "completed") return task.completed;
+          if (filter === "pending") return !task.completed;
+          return true;
+        })
+        .forEach((task, index) => {
+          const li = document.createElement("li");
+          li.className = task.completed ? "completed" : "";
+
+          li.innerHTML = `
+            <input type="checkbox" ${task.completed ? "checked" : ""} onclick="toggleComplete(${index})">
+            <span>${task.text}</span>
+            <div class="actions">
+              <button onclick="editTask(${index})">✏ แก้ไข</button>
+              <button onclick="removeTask(${index})">🗑 ลบ</button>
+            </div>
+          `;
+          list.appendChild(li);
+        });
     }
 
     function addTask() {
       const input = document.getElementById("taskInput");
-      const task = input.value.trim();
-      if (task !== "") {
-        tasks.push(task);
+      const taskText = input.value.trim();
+      if (taskText !== "") {
+        tasks.push({ text: taskText, completed: false });
         localStorage.setItem("tasks", JSON.stringify(tasks));
         input.value = "";
         renderTasks();
       }
     }
 
-    function removeTask(index) {
-      tasks.splice(index, 1);
+    function toggleComplete(index) {
+      tasks[index].completed = !tasks[index].completed;
       localStorage.setItem("tasks", JSON.stringify(tasks));
       renderTasks();
+    }
+
+    function editTask(index) {
+      const newText = prompt("แก้ไขงาน:", tasks[index].text);
+      if (newText !== null && newText.trim() !== "") {
+        tasks[index].text = newText.trim();
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+      }
+    }
+
+    function removeTask(index) {
+      if (confirm("ต้องการลบงานนี้จริงหรือไม่?")) {
+        tasks.splice(index, 1);
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+      }
+    }
+
+    function exportTasks() {
+      const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "tasks.json";
+      link.click();
+    }
+
+    function importTasks(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            tasks = imported;
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+          } else {
+            alert("ไฟล์ไม่ถูกต้อง");
+          }
+        } catch {
+          alert("อ่านไฟล์ไม่สำเร็จ");
+        }
+      };
+      reader.readAsText(file);
     }
 
     // โหลด task ตอนเปิดเว็บ
