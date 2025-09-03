@@ -3,102 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <title>To-Do List Pro</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      display: flex;
-      justify-content: center;
-      padding: 40px;
-    }
-    .container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-      width: 450px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input, button, select {
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      cursor: pointer;
-      background: #007BFF;
-      color: white;
-      border: none;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9f9f9;
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 6px;
-    }
-    li span {
-      flex-grow: 1;
-      margin-left: 10px;
-    }
-    li.completed span {
-      text-decoration: line-through;
-      color: gray;
-    }
-    .actions button {
-      margin-left: 5px;
-      padding: 5px 8px;
-      font-size: 12px;
-    }
-    .top-controls {
-      display: flex;
-      justify-content: space-between;
-      gap: 5px;
-      margin-bottom: 10px;
-    }
-    .top-controls input {
-      flex: 1;
-    }
-  </style>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>📝 To-Do List Pro</h1>
+<body class="bg-gray-100 flex justify-center p-6">
+  <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-6">
+    <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">📝 To-Do List Pro</h1>
     
-    <div class="top-controls">
-      <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ...">
-      <button onclick="addTask()">เพิ่ม</button>
+    <!-- Add task -->
+    <div class="flex mb-4 gap-2">
+      <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..."
+        class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
+      <button onclick="addTask()"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">เพิ่ม</button>
     </div>
 
-    <div class="top-controls">
-      <input id="searchInput" type="text" placeholder="ค้นหา...">
-      <select id="filterSelect" onchange="renderTasks()">
+    <!-- Search & Filter -->
+    <div class="flex mb-4 gap-2">
+      <input id="searchInput" type="text" placeholder="ค้นหา..."
+        class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+        oninput="renderTasks()">
+      <select id="filterSelect" onchange="renderTasks()"
+        class="border rounded-lg px-2 py-2">
         <option value="all">ทั้งหมด</option>
         <option value="completed">เสร็จแล้ว</option>
         <option value="pending">ยังไม่เสร็จ</option>
       </select>
     </div>
 
-    <ul id="taskList"></ul>
+    <!-- Task List -->
+    <ul id="taskList" class="space-y-2"></ul>
 
-    <div class="top-controls">
-      <button onclick="exportTasks()">⬇ Export JSON</button>
-      <input type="file" id="importFile" accept=".json" onchange="importTasks(event)">
+    <!-- Export / Import -->
+    <div class="flex justify-between mt-6">
+      <button onclick="exportTasks()"
+        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">
+        ⬇ Export JSON
+      </button>
+      <label class="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg">
+        ⬆ Import JSON
+        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importTasks(event)">
+      </label>
     </div>
   </div>
 
@@ -121,14 +66,23 @@
         })
         .forEach((task, index) => {
           const li = document.createElement("li");
-          li.className = task.completed ? "completed" : "";
+          li.className = `flex items-center justify-between p-3 rounded-lg shadow-sm ${
+            task.completed ? "bg-green-100" : "bg-gray-50"
+          }`;
 
           li.innerHTML = `
-            <input type="checkbox" ${task.completed ? "checked" : ""} onclick="toggleComplete(${index})">
-            <span>${task.text}</span>
-            <div class="actions">
-              <button onclick="editTask(${index})">✏ แก้ไข</button>
-              <button onclick="removeTask(${index})">🗑 ลบ</button>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" ${task.completed ? "checked" : ""} 
+                onclick="toggleComplete(${index})" class="w-4 h-4">
+              <span class="text-sm ${task.completed ? "line-through text-gray-500" : ""}">
+                ${task.text}
+              </span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="editTask(${index})"
+                class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
+              <button onclick="removeTask(${index})"
+                class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
             </div>
           `;
           list.appendChild(li);
