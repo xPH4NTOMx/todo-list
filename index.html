@@ -8,10 +8,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex justify-center p-6 transition-colors duration-500">
-<div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl w-full max-w-md p-6 transition-colors duration-500">
-  <div class="flex justify-between items-center mb-4">
+<div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl w-full max-w-md p-6 transition-colors duration-500 relative">
+  <div class="flex justify-between items-center mb-4 z-10 relative">
     <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">📝 To-Do List Pro</h1>
-    <button onclick="toggleDarkMode()" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">🌙</button>
+    <button id="darkModeBtn" 
+      class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 z-10 relative">
+      🌙
+    </button>
   </div>
 
   <div class="space-y-2 mb-4">
@@ -54,87 +57,68 @@
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 // Dark Mode
-function toggleDarkMode() {
+const darkBtn = document.getElementById("darkModeBtn");
+darkBtn.addEventListener("click", () => {
   document.documentElement.classList.toggle("dark");
   localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
-}
-if (localStorage.getItem("darkMode") === "true") document.documentElement.classList.add("dark");
+});
+if(localStorage.getItem("darkMode")==="true") document.documentElement.classList.add("dark");
 
 // Render Tasks
-function renderTasks() {
-  const list = document.getElementById("taskList");
-  const search = document.getElementById("searchInput").value.toLowerCase();
-  const filter = document.getElementById("filterSelect").value;
-  list.innerHTML = "";
+function renderTasks(){
+  const list=document.getElementById("taskList");
+  const search=document.getElementById("searchInput").value.toLowerCase();
+  const filter=document.getElementById("filterSelect").value;
+  list.innerHTML="";
 
-  const filtered = tasks.filter(t => t.text.toLowerCase().includes(search))
-                        .filter(t => filter === "completed" ? t.completed : filter === "pending" ? !t.completed : true);
-
-  filtered.forEach(task => {
-    const index = tasks.indexOf(task);
-    let deadlineColor = "bg-gray-50 dark:bg-gray-700";
-    if (task.deadline) {
-      const now = new Date();
-      const due = new Date(task.deadline);
-      if (due < now) deadlineColor = "bg-red-100 dark:bg-red-800";
-      else if (due - now < 24*60*60*1000) deadlineColor = "bg-yellow-100 dark:bg-yellow-800";
-      else deadlineColor = "bg-green-100 dark:bg-green-800";
-    }
-
-    const li = document.createElement("li");
-    li.className = `flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
-    li.innerHTML = `
-      <div class="flex flex-col">
-        <div class="flex items-center gap-2">
-          <input type="checkbox" ${task.completed ? "checked" : ""} onclick="toggleComplete(${index})" class="w-4 h-4">
-          <span class="text-sm ${task.completed ? "line-through text-gray-500" : "dark:text-gray-200"}">${task.text}</span>
-        </div>
-        <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category || "ทั่วไป"}</span>
-        ${task.deadline ? `<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>` : ""}
-      </div>
-      <div class="flex gap-2">
-        <button onclick="editTask(${index})" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
-        <button onclick="removeTask(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
-      </div>
-    `;
-    list.appendChild(li);
-  });
-
+  tasks.filter(t=>t.text.toLowerCase().includes(search))
+       .filter(t=>filter==="completed"?t.completed:filter==="pending"?!t.completed:true)
+       .forEach(task=>{
+         const index = tasks.indexOf(task);
+         let deadlineColor="bg-gray-50 dark:bg-gray-700";
+         if(task.deadline){
+           const now=new Date(),due=new Date(task.deadline);
+           if(due<now) deadlineColor="bg-red-100 dark:bg-red-800";
+           else if(due-now<24*60*60*1000) deadlineColor="bg-yellow-100 dark:bg-yellow-800";
+           else deadlineColor="bg-green-100 dark:bg-green-800";
+         }
+         const li=document.createElement("li");
+         li.className=`flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
+         li.innerHTML=`
+           <div class="flex flex-col">
+             <div class="flex items-center gap-2">
+               <input type="checkbox" ${task.completed?"checked":""} onclick="toggleComplete(${index})" class="w-4 h-4">
+               <span class="text-sm ${task.completed?"line-through text-gray-500":"dark:text-gray-200"}">${task.text}</span>
+             </div>
+             <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category||"ทั่วไป"}</span>
+             ${task.deadline?`<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>`:""}
+           </div>
+           <div class="flex gap-2">
+             <button onclick="editTask(${index})" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
+             <button onclick="removeTask(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
+           </div>`;
+         list.appendChild(li);
+       });
   updateStats();
 }
 
-// Update stats
-function updateStats() {
-  const stats = document.getElementById("stats");
-  const total = tasks.length;
-  const completed = tasks.filter(t => t.completed).length;
-  stats.innerText = `งานทั้งหมด: ${total} | เสร็จแล้ว: ${completed} | ค้าง: ${total - completed}`;
-  document.getElementById("progressBar").style.width = total > 0 ? (completed/total*100) + "%" : "0%";
+function updateStats(){
+  const total=tasks.length;
+  const completed=tasks.filter(t=>t.completed).length;
+  document.getElementById("stats").innerText=`งานทั้งหมด: ${total} | เสร็จแล้ว: ${completed} | ค้าง: ${total-completed}`;
+  document.getElementById("progressBar").style.width=total>0?(completed/total*100)+"%":"0%";
 }
 
 // CRUD
-function addTask() {
-  const input = document.getElementById("taskInput");
-  const category = document.getElementById("categoryInput").value;
-  const deadline = document.getElementById("deadlineInput").value;
-  const text = input.value.trim();
-  if (text === "") return;
-  tasks.push({text, completed:false, category, deadline});
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-  input.value = "";
-  document.getElementById("deadlineInput").value = "";
-  renderTasks();
-}
-
-function toggleComplete(index){ tasks[index].completed = !tasks[index].completed; localStorage.setItem("tasks", JSON.stringify(tasks)); renderTasks(); }
-function editTask(index){ const t=prompt("แก้ไขงาน:", tasks[index].text); if(t!==null && t.trim()!==""){ tasks[index].text=t.trim(); localStorage.setItem("tasks", JSON.stringify(tasks)); renderTasks(); } }
-function removeTask(index){ if(confirm("ต้องการลบงานนี้จริงหรือไม่?")){ tasks.splice(index,1); localStorage.setItem("tasks", JSON.stringify(tasks)); renderTasks(); } }
-
-function exportTasks(){ const blob = new Blob([JSON.stringify(tasks,null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="tasks.json"; a.click(); }
-function importTasks(e){ const file=e.target.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=function(ev){ try{ const data=JSON.parse(ev.target.result); if(Array.isArray(data)){ tasks=data; localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks(); } else alert("ไฟล์ไม่ถูกต้อง"); }catch{ alert("อ่านไฟล์ไม่สำเร็จ"); } }; reader.readAsText(file); }
+function addTask(){const tI=document.getElementById("taskInput"),cI=document.getElementById("categoryInput"),dI=document.getElementById("deadlineInput"); const text=tI.value.trim(); if(text==="") return; tasks.push({text,completed:false,category:cI.value,deadline:dI.value}); localStorage.setItem("tasks",JSON.stringify(tasks)); tI.value=""; dI.value=""; renderTasks();}
+function toggleComplete(i){tasks[i].completed=!tasks[i].completed; localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}
+function editTask(i){const t=prompt("แก้ไขงาน:",tasks[i].text); if(t!==null && t.trim()!==""){tasks[i].text=t.trim(); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}}
+function removeTask(i){if(confirm("ต้องการลบงานนี้จริงหรือไม่?")){tasks.splice(i,1); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}}
+function exportTasks(){const b=new Blob([JSON.stringify(tasks,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="tasks.json";a.click();}
+function importTasks(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{const d=JSON.parse(ev.target.result);if(Array.isArray(d)){tasks=d;localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}else alert("ไฟล์ไม่ถูกต้อง");}catch{alert("อ่านไฟล์ไม่สำเร็จ");}};r.readAsText(f);}
 
 // Sortable
-new Sortable(document.getElementById("taskList"), {animation:150,onEnd:(evt)=>{ const [moved]=tasks.splice(evt.oldIndex,1); tasks.splice(evt.newIndex,0,moved); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks(); }});
+new Sortable(document.getElementById("taskList"),{animation:150,onEnd:(evt)=>{const[moved]=tasks.splice(evt.oldIndex,1);tasks.splice(evt.newIndex,0,moved);localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}});
 
 renderTasks();
 </script>
