@@ -1,126 +1,100 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>To-Do List Pro</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<title>To-Do List Pro</title>
+
+<script>
+  tailwind.config = { darkMode: 'class' }
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
-<body class="bg-gray-100 flex justify-center p-6">
-  <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-6">
-    <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">📝 To-Do List Pro</h1>
-    
-    <!-- Add task -->
-    <div class="flex mb-4 gap-2">
-      <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..."
-        class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
-      <button onclick="addTask()"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-lg">เพิ่ม</button>
-    </div>
+<body class="bg-gray-100 dark:bg-gray-900 flex justify-center p-6 transition-colors duration-500">
 
-    <!-- Search & Filter -->
-    <div class="flex mb-4 gap-2">
-      <input id="searchInput" type="text" placeholder="ค้นหา..."
-        class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-        oninput="renderTasks()">
-      <select id="filterSelect" onchange="renderTasks()"
-        class="border rounded-lg px-2 py-2">
-        <option value="all">ทั้งหมด</option>
-        <option value="completed">เสร็จแล้ว</option>
-        <option value="pending">ยังไม่เสร็จ</option>
-      </select>
-    </div>
+<div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl w-full max-w-md p-6 transition-colors duration-500">
 
-    <!-- Task List -->
-    <ul id="taskList" class="space-y-2"></ul>
 
-    <!-- Export / Import -->
-    <div class="flex justify-between mt-6">
-      <button onclick="exportTasks()"
-        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">
-        ⬇ Export JSON
-      </button>
-      <label class="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg">
-        ⬆ Import JSON
-        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importTasks(event)">
-      </label>
-    </div>
+
+  <!-- Add Task -->
+  <div class="space-y-2 mb-4">
+    <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..." class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
+    <select id="categoryInput" class="w-full border rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-gray-200">
+      <option value="งานบ้าน">🏠 งานบ้าน</option>
+      <option value="งานเรียน">📚 งานเรียน</option>
+      <option value="งานส่วนตัว">🙋 งานส่วนตัว</option>
+    </select>
+    <input id="deadlineInput" type="datetime-local" class="w-full border rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-gray-200">
+    <button onclick="addTask()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">➕ เพิ่ม</button>
   </div>
 
-  <script>
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  <!-- Search & Filter -->
+  <div class="flex mb-4 gap-2">
+    <input id="searchInput" type="text" placeholder="ค้นหา..." class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200" oninput="renderTasks()">
+    <select id="filterSelect" onchange="renderTasks()" class="border rounded-lg px-2 py-2 dark:bg-gray-700 dark:text-gray-200">
+      <option value="all">ทั้งหมด</option>
+      <option value="completed">เสร็จแล้ว</option>
+      <option value="pending">ยังไม่เสร็จ</option>
+    </select>
+  </div>
 
-    function renderTasks() {
-      const list = document.getElementById("taskList");
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const filter = document.getElementById("filterSelect").value;
+  <div id="stats" class="mb-4 text-sm text-gray-600 dark:text-gray-300"></div>
+  <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded mb-4">
+    <div id="progressBar" class="h-2 bg-green-500 rounded" style="width:0%"></div>
+  </div>
 
-      list.innerHTML = "";
+  <ul id="taskList" class="space-y-2"></ul>
 
-      tasks
-        .filter(task => task.text.toLowerCase().includes(search))
-        .filter(task => {
-          if (filter === "completed") return task.completed;
-          if (filter === "pending") return !task.completed;
-          return true;
-        })
-        .forEach((task, index) => {
-          const li = document.createElement("li");
-          li.className = `flex items-center justify-between p-3 rounded-lg shadow-sm ${
-            task.completed ? "bg-green-100" : "bg-gray-50"
-          }`;
+  <div class="flex justify-between mt-6">
+    <button onclick="exportTasks()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">⬇ Export JSON</button>
+    <label class="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg">
+      ⬆ Import JSON
+      <input type="file" id="importFile" accept=".json" class="hidden" onchange="importTasks(event)">
+    </label>
+  </div>
 
-          li.innerHTML = `
-            <div class="flex items-center gap-2">
-              <input type="checkbox" ${task.completed ? "checked" : ""} 
-                onclick="toggleComplete(${index})" class="w-4 h-4">
-              <span class="text-sm ${task.completed ? "line-through text-gray-500" : ""}">
-                ${task.text}
-              </span>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="editTask(${index})"
-                class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
-              <button onclick="removeTask(${index})"
-                class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
-            </div>
-          `;
-          list.appendChild(li);
-        });
-    }
+</div>
 
-    function addTask() {
-      const input = document.getElementById("taskInput");
-      const taskText = input.value.trim();
-      if (taskText !== "") {
-        tasks.push({ text: taskText, completed: false });
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        input.value = "";
-        renderTasks();
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+// Dark Mode
+const darkBtn = document.getElementById("darkModeBtn");
+if(localStorage.getItem("darkMode") === "true") document.documentElement.classList.add("dark");
+darkBtn.addEventListener("click", ()=>{
+  document.documentElement.classList.toggle("dark");
+  localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+});
+
+// Render Tasks
+function toggleDarkMode() {
+  document.body.classList.toggle("bg-gray-900");
+  document.body.classList.toggle("text-white");
+}
+function renderTasks(){
+  const list=document.getElementById("taskList");
+  const search=document.getElementById("searchInput").value.toLowerCase();
+  const filter=document.getElementById("filterSelect").value;
+  list.innerHTML="";
+
+  tasks
+    .filter(t => t.text.toLowerCase().includes(search))
+    .filter(t => {
+      if(filter === "completed") return t.completed;
+      if(filter === "pending") return !t.completed;
+      return true; // all
+    })
+    .forEach(task => {
+      const index = tasks.indexOf(task);
+      let deadlineColor="bg-gray-50 dark:bg-gray-700";
+      if(task.deadline){
+        const now=new Date(), due=new Date(task.deadline);
+        if(due<now) deadlineColor="bg-red-100 dark:bg-red-800";
+        else if(due-now<24*60*60*1000) deadlineColor="bg-yellow-100 dark:bg-yellow-800";
+        else deadlineColor="bg-green-100 dark:bg-green-800";
       }
-    }
-
-    function toggleComplete(index) {
-      tasks[index].completed = !tasks[index].completed;
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-      renderTasks();
-    }
-
-    function editTask(index) {
-      const newText = prompt("แก้ไขงาน:", tasks[index].text);
-      if (newText !== null && newText.trim() !== "") {
-        tasks[index].text = newText.trim();
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-      }
-    }
-
-    function removeTask(index) {
-      if (confirm("ต้องการลบงานนี้จริงหรือไม่?")) {
-        tasks.splice(index, 1);
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-      }
+<<<<<<< feature-export-import
     }
 
     function exportTasks() {
@@ -154,7 +128,66 @@
     }
 //
     // โหลด task ตอนเปิดเว็บ
+=======
+      const li=document.createElement("li");
+      li.className=`flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
+      li.innerHTML=`
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" ${task.completed?"checked":""} onclick="toggleComplete(${index})" class="w-4 h-4">
+            <span class="text-sm ${task.completed?"line-through text-gray-500":"dark:text-gray-200"}">${task.text}</span>
+          </div>
+          <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category||"ทั่วไป"}</span>
+          ${task.deadline?`<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>`:""}
+        </div>
+        <div class="flex gap-2">
+          <button onclick="editTask(${index})" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
+          <button onclick="removeTask(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
+        </div>`;
+      list.appendChild(li);
+    });
+
+  updateStats();
+}
+
+// Update Stats
+function updateStats(){
+  const total=tasks.length;
+  const completed=tasks.filter(t=>t.completed).length;
+  document.getElementById("stats").innerText=`งานทั้งหมด: ${total} | เสร็จแล้ว: ${completed} | ค้าง: ${total-completed}`;
+  document.getElementById("progressBar").style.width=total>0?(completed/total*100)+"%":"0%";
+}
+
+// CRUD
+function addTask(){
+  const tI=document.getElementById("taskInput"), cI=document.getElementById("categoryInput"), dI=document.getElementById("deadlineInput");
+  const text=tI.value.trim(); if(!text) return;
+  tasks.push({text,completed:false,category:cI.value,deadline:dI.value});
+  localStorage.setItem("tasks",JSON.stringify(tasks));
+  tI.value=""; dI.value="";
+  renderTasks();
+}
+function toggleComplete(i){tasks[i].completed=!tasks[i].completed; localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}
+function editTask(i){const t=prompt("แก้ไขงาน:",tasks[i].text); if(t!==null && t.trim()!==""){tasks[i].text=t.trim(); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}}
+function removeTask(i){if(confirm("ต้องการลบงานนี้จริงหรือไม่?")){tasks.splice(i,1); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}}
+function exportTasks(){const b=new Blob([JSON.stringify(tasks,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="tasks.json";a.click();}
+function importTasks(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{const d=JSON.parse(ev.target.result);if(Array.isArray(d)){tasks=d;localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}else alert("ไฟล์ไม่ถูกต้อง");}catch{alert("อ่านไฟล์ไม่สำเร็จ");}};r.readAsText(f);}
+
+// Sortable
+new Sortable(document.getElementById("taskList"),{
+  animation: 150,
+  onEnd: (evt) => {
+    const [movedTask] = tasks.splice(evt.oldIndex, 1);
+    tasks.splice(evt.newIndex, 0, movedTask);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+>>>>>>> main
     renderTasks();
-  </script>
+  }
+});
+
+// โหลดหน้าแรก
+renderTasks();
+</script>
+
 </body>
 </html>
