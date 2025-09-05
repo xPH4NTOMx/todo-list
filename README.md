@@ -21,4 +21,4 @@
 1. โคลนโปรเจกต์
    ```bash
    git clone https://github.com/xPH4NTOMx/todo-list.git
-   cd todo-list
+   cd todo-list.
