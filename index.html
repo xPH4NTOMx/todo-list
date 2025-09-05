@@ -12,7 +12,9 @@
 
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">📝 To-Do List Pro</h1>
-    <button id="darkModeBtn" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">🌙</button>
+    <button id="darkModeBtn" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+  🌙
+</button>
   </div>
 
   <!-- Add Task -->
@@ -58,12 +60,19 @@
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 // Dark Mode
-const darkBtn = document.getElementById("darkModeBtn");
-darkBtn.addEventListener("click", () => {
-  document.documentElement.classList.toggle("dark");
-  localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+document.addEventListener("DOMContentLoaded", () => {
+  const darkBtn = document.getElementById("darkModeBtn");
+
+  // ตรวจสอบสถานะ Dark Mode เก็บใน localStorage
+  if(localStorage.getItem("darkMode") === "true") {
+    document.documentElement.classList.add("dark");
+  }
+
+  darkBtn.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+  });
 });
-if(localStorage.getItem("darkMode")==="true") document.documentElement.classList.add("dark");
 
 // Render Tasks
 function renderTasks(){
