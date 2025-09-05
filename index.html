@@ -96,17 +96,31 @@
           return true;
         });
 
-      filtered.forEach((task, index) => {
-        const li = document.createElement("li");
-        let deadlineColor = "bg-gray-50 dark:bg-gray-700";
-
-        if (task.deadline) {
-          const now = new Date();
-          const due = new Date(task.deadline);
-          if (due < now) deadlineColor = "bg-red-100 dark:bg-red-800";
-          else if (due - now < 24 * 60 * 60 * 1000) deadlineColor = "bg-yellow-100 dark:bg-yellow-800";
-          else deadlineColor = "bg-green-100 dark:bg-green-800";
-        }
+      filtered.forEach(task => {
+  const li = document.createElement("li");
+  let taskIndex = tasks.indexOf(task); // index จริงใน tasks array
+  // ... โค้ดสร้าง li
+  li.innerHTML = `
+    <div class="flex flex-col">
+      <div class="flex items-center gap-2">
+        <input type="checkbox" ${task.completed ? "checked" : ""} 
+          onclick="toggleComplete(${taskIndex})" class="w-4 h-4">
+        <span class="text-sm ${task.completed ? "line-through text-gray-500" : "dark:text-gray-200"}">
+          ${task.text}
+        </span>
+      </div>
+      <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category || "ทั่วไป"}</span>
+      ${task.deadline ? `<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>` : ""}
+    </div>
+    <div class="flex gap-2">
+      <button onclick="editTask(${taskIndex})"
+        class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
+      <button onclick="removeTask(${taskIndex})"
+        class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
+    </div>
+  `;
+  list.appendChild(li);
+});
 
         li.className = `flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
 
