@@ -1,27 +1,29 @@
 <!DOCTYPE html>
-<html lang="th" class="">
+<html lang="th">
 <head>
 <meta charset="UTF-8">
 <title>To-Do List Pro</title>
 
+<!-- ตั้งค่า Tailwind dark mode -->
 <script>
-  tailwind.config = {
-    darkMode: 'class'
-  }
+  tailwind.config = { darkMode: 'class' }
 </script>
-
 <script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Sortable.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+<!-- Animate.css -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex justify-center p-6 transition-colors duration-500">
+
 <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl w-full max-w-md p-6 transition-colors duration-500">
 
+  <!-- Header -->
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">📝 To-Do List Pro</h1>
-    <button id="darkModeBtn" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-  🌙
-</button>
+    <button id="darkModeBtn" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">🌙</button>
   </div>
 
   <!-- Add Task -->
@@ -46,13 +48,16 @@
     </select>
   </div>
 
+  <!-- Stats -->
   <div id="stats" class="mb-4 text-sm text-gray-600 dark:text-gray-300"></div>
   <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded mb-4">
     <div id="progressBar" class="h-2 bg-green-500 rounded" style="width:0%"></div>
   </div>
 
+  <!-- Task List -->
   <ul id="taskList" class="space-y-2"></ul>
 
+  <!-- Export / Import -->
   <div class="flex justify-between mt-6">
     <button onclick="exportTasks()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">⬇ Export JSON</button>
     <label class="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg">
@@ -66,6 +71,13 @@
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
+// Dark Mode
+const darkBtn = document.getElementById("darkModeBtn");
+if(localStorage.getItem("darkMode") === "true") document.documentElement.classList.add("dark");
+darkBtn.addEventListener("click", ()=>{
+  document.documentElement.classList.toggle("dark");
+  localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+});
 
 // Render Tasks
 function renderTasks(){
@@ -105,6 +117,7 @@ function renderTasks(){
   updateStats();
 }
 
+// Update Stats
 function updateStats(){
   const total=tasks.length;
   const completed=tasks.filter(t=>t.completed).length;
@@ -113,7 +126,14 @@ function updateStats(){
 }
 
 // CRUD
-function addTask(){const tI=document.getElementById("taskInput"),cI=document.getElementById("categoryInput"),dI=document.getElementById("deadlineInput"); const text=tI.value.trim(); if(text==="") return; tasks.push({text,completed:false,category:cI.value,deadline:dI.value}); localStorage.setItem("tasks",JSON.stringify(tasks)); tI.value=""; dI.value=""; renderTasks();}
+function addTask(){
+  const tI=document.getElementById("taskInput"), cI=document.getElementById("categoryInput"), dI=document.getElementById("deadlineInput");
+  const text=tI.value.trim(); if(!text) return;
+  tasks.push({text,completed:false,category:cI.value,deadline:dI.value});
+  localStorage.setItem("tasks",JSON.stringify(tasks));
+  tI.value=""; dI.value="";
+  renderTasks();
+}
 function toggleComplete(i){tasks[i].completed=!tasks[i].completed; localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}
 function editTask(i){const t=prompt("แก้ไขงาน:",tasks[i].text); if(t!==null && t.trim()!==""){tasks[i].text=t.trim(); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}}
 function removeTask(i){if(confirm("ต้องการลบงานนี้จริงหรือไม่?")){tasks.splice(i,1); localStorage.setItem("tasks",JSON.stringify(tasks)); renderTasks();}}
@@ -123,20 +143,8 @@ function importTasks(e){const f=e.target.files[0];if(!f)return;const r=new FileR
 // Sortable
 new Sortable(document.getElementById("taskList"),{animation:150,onEnd:(evt)=>{const[moved]=tasks.splice(evt.oldIndex,1);tasks.splice(evt.newIndex,0,moved);localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}});
 
-const darkBtn = document.getElementById("darkModeBtn");
-
-// โหลดสถานะเก่า
-if(localStorage.getItem("darkMode") === "true"){
-  document.documentElement.classList.add("dark");
-}
-
-// กดปุ่มสลับ dark mode
-darkBtn.addEventListener("click", ()=>{
-  document.documentElement.classList.toggle("dark");
-  localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
-});
-
 renderTasks();
 </script>
+
 </body>
 </html>
