@@ -9,7 +9,14 @@
 <body class="bg-gray-100 flex justify-center p-6">
   <div class="bg-white shadow-2xl rounded-2xl w-full max-w-md p-6">
     <h1 class="text-2xl font-bold text-center mb-6 text-blue-600">📝 To-Do List Pro</h1>
-    
+<!--Progress bar + Dark mode-->    
+    <div class="flex justify-between items-center mb-4">
+  <div class="text-sm text-gray-600" id="stats"></div>
+  <button onclick="toggleDarkMode()" class="px-3 py-1 rounded bg-gray-800 text-white">
+    🌙
+  </button>
+</div>
+
     <!-- Add task -->
     <div class="flex mb-4 gap-2">
       <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..."
@@ -122,7 +129,23 @@
         renderTasks();
       }
     }
+//progressbar + dark mode
+    function updateStats() {
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.completed).length;
+  document.getElementById("stats").textContent = `งานทั้งหมด: ${total}, เสร็จแล้ว: ${completed}`;
+}
 
+function toggleDarkMode() {
+  document.body.classList.toggle("bg-gray-900");
+  document.body.classList.toggle("text-white");
+}
+
+// เรียกใช้เวลา render
+function renderTasks() {
+  // ... โค้ดเก่า ...
+  updateStats();
+}
     function exportTasks() {
       const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
       const link = document.createElement("a");
