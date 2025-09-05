@@ -94,6 +94,41 @@ function renderTasks(){
         else if(due-now<24*60*60*1000) deadlineColor="bg-yellow-100 dark:bg-yellow-800";
         else deadlineColor="bg-green-100 dark:bg-green-800";
       }
+<<<<<<< feature-export-import
+    }
+
+    function exportTasks() {
+      const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "tasks.json";
+      link.click();
+    }
+
+    function importTasks(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            tasks = imported;
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+          } else {
+            alert("ไฟล์ไม่ถูกต้อง");
+          }
+        } catch {
+          alert("อ่านไฟล์ไม่สำเร็จ");
+        }
+      };
+      reader.readAsText(file);
+    }
+//
+    // โหลด task ตอนเปิดเว็บ
+=======
       const li=document.createElement("li");
       li.className=`flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
       li.innerHTML=`
@@ -145,6 +180,7 @@ new Sortable(document.getElementById("taskList"),{
     const [movedTask] = tasks.splice(evt.oldIndex, 1);
     tasks.splice(evt.newIndex, 0, movedTask);
     localStorage.setItem("tasks", JSON.stringify(tasks));
+>>>>>>> main
     renderTasks();
   }
 });
