@@ -4,28 +4,24 @@
 <meta charset="UTF-8">
 <title>To-Do List Pro</title>
 
-<!-- ตั้งค่า Tailwind dark mode -->
 <script>
   tailwind.config = { darkMode: 'class' }
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Sortable.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
-<!-- Animate.css -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex justify-center p-6 transition-colors duration-500">
 
 <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl w-full max-w-md p-6 transition-colors duration-500">
 
-  <!-- Header -->
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">📝 To-Do List Pro</h1>
+    <button id="darkModeBtn" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">🌙</button>
   </div>
 
-  <!-- Add Task -->
   <div class="space-y-2 mb-4">
     <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..." class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200">
     <select id="categoryInput" class="w-full border rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-gray-200">
@@ -37,7 +33,6 @@
     <button onclick="addTask()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">➕ เพิ่ม</button>
   </div>
 
-  <!-- Search & Filter -->
   <div class="flex mb-4 gap-2">
     <input id="searchInput" type="text" placeholder="ค้นหา..." class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none dark:bg-gray-700 dark:text-gray-200" oninput="renderTasks()">
     <select id="filterSelect" onchange="renderTasks()" class="border rounded-lg px-2 py-2 dark:bg-gray-700 dark:text-gray-200">
@@ -47,16 +42,13 @@
     </select>
   </div>
 
-  <!-- Stats -->
   <div id="stats" class="mb-4 text-sm text-gray-600 dark:text-gray-300"></div>
   <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded mb-4">
     <div id="progressBar" class="h-2 bg-green-500 rounded" style="width:0%"></div>
   </div>
 
-  <!-- Task List -->
   <ul id="taskList" class="space-y-2"></ul>
 
-  <!-- Export / Import -->
   <div class="flex justify-between mt-6">
     <button onclick="exportTasks()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">⬇ Export JSON</button>
     <label class="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg">
@@ -140,7 +132,18 @@ function exportTasks(){const b=new Blob([JSON.stringify(tasks,null,2)],{type:"ap
 function importTasks(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{const d=JSON.parse(ev.target.result);if(Array.isArray(d)){tasks=d;localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}else alert("ไฟล์ไม่ถูกต้อง");}catch{alert("อ่านไฟล์ไม่สำเร็จ");}};r.readAsText(f);}
 
 // Sortable
-new Sortable(document.getElementById("taskList"),{animation:150,onEnd:(evt)=>{const[moved]=tasks.splice(evt.oldIndex,1);tasks.splice(evt.newIndex,0,moved);localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}});
+new Sortable(document.getElementById("taskList"),{
+  animation: 150,
+  onEnd: (evt) => {
+    // Correctly move the task in the tasks array
+    const [movedTask] = tasks.splice(evt.oldIndex, 1);
+    tasks.splice(evt.newIndex, 0, movedTask);
+    
+    // Save the new order and re-render the list
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks();
+  }
+});
 
 renderTasks();
 </script>
