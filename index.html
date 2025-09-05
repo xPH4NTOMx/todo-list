@@ -59,20 +59,6 @@
 <script>
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-// Dark Mode
-document.addEventListener("DOMContentLoaded", () => {
-  const darkBtn = document.getElementById("darkModeBtn");
-
-  // ตรวจสอบสถานะ Dark Mode เก็บใน localStorage
-  if(localStorage.getItem("darkMode") === "true") {
-    document.documentElement.classList.add("dark");
-  }
-
-  darkBtn.addEventListener("click", () => {
-    document.documentElement.classList.toggle("dark");
-    localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
-  });
-});
 
 // Render Tasks
 function renderTasks(){
@@ -129,6 +115,19 @@ function importTasks(e){const f=e.target.files[0];if(!f)return;const r=new FileR
 
 // Sortable
 new Sortable(document.getElementById("taskList"),{animation:150,onEnd:(evt)=>{const[moved]=tasks.splice(evt.oldIndex,1);tasks.splice(evt.newIndex,0,moved);localStorage.setItem("tasks",JSON.stringify(tasks));renderTasks();}});
+
+const darkBtn = document.getElementById("darkModeBtn");
+
+// โหลดสถานะเก่า
+if(localStorage.getItem("darkMode") === "true"){
+  document.documentElement.classList.add("dark");
+}
+
+// กดปุ่มสลับ dark mode
+darkBtn.addEventListener("click", ()=>{
+  document.documentElement.classList.toggle("dark");
+  localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+});
 
 renderTasks();
 </script>
