@@ -1,47 +1,35 @@
 <!DOCTYPE html>
-<html lang="th" class="">
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <title>To-Do List Pro</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Animate.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-  <!-- SortableJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 flex justify-center p-6 transition-colors duration-500">
   <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl w-full max-w-md p-6 transition-colors duration-500">
     <div class="flex justify-between items-center mb-4">
       <h1 class="text-2xl font-bold text-blue-600 dark:text-blue-400">📝 To-Do List Pro</h1>
-      <button onclick="toggleDarkMode()" 
-        class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-        🌙
-      </button>
+      <button onclick="toggleDarkMode()" class="px-3 py-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">🌙</button>
     </div>
 
     <!-- Add task -->
     <div class="space-y-2 mb-4">
-      <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..."
-        class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
-      <select id="categoryInput" class="w-full border rounded-lg px-3 py-2">
+      <input id="taskInput" type="text" placeholder="เพิ่มงานที่ต้องทำ..." class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none">
+      <select id="categoryInput" class="w-full border rounded-lg px-3 py-2 text-gray-800 dark:text-gray-200">
         <option value="งานบ้าน">🏠 งานบ้าน</option>
         <option value="งานเรียน">📚 งานเรียน</option>
         <option value="งานส่วนตัว">🙋 งานส่วนตัว</option>
       </select>
-      <input id="deadlineInput" type="datetime-local"
-        class="w-full border rounded-lg px-3 py-2">
-      <button onclick="addTask()"
-        class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">➕ เพิ่ม</button>
+      <input id="deadlineInput" type="datetime-local" class="w-full border rounded-lg px-3 py-2">
+      <button onclick="addTask()" class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">➕ เพิ่ม</button>
     </div>
 
     <!-- Search & Filter -->
     <div class="flex mb-4 gap-2">
-      <input id="searchInput" type="text" placeholder="ค้นหา..."
-        class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-        oninput="renderTasks()">
-      <select id="filterSelect" onchange="renderTasks()"
-        class="border rounded-lg px-2 py-2">
+      <input id="searchInput" type="text" placeholder="ค้นหา..." class="flex-1 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 outline-none" oninput="renderTasks()">
+      <select id="filterSelect" onchange="renderTasks()" class="border rounded-lg px-2 py-2 text-gray-800 dark:text-gray-200">
         <option value="all">ทั้งหมด</option>
         <option value="completed">เสร็จแล้ว</option>
         <option value="pending">ยังไม่เสร็จ</option>
@@ -59,10 +47,7 @@
 
     <!-- Export / Import -->
     <div class="flex justify-between mt-6">
-      <button onclick="exportTasks()"
-        class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">
-        ⬇ Export JSON
-      </button>
+      <button onclick="exportTasks()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg">⬇ Export JSON</button>
       <label class="cursor-pointer bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg">
         ⬆ Import JSON
         <input type="file" id="importFile" accept=".json" class="hidden" onchange="importTasks(event)">
@@ -70,175 +55,141 @@
     </div>
   </div>
 
-  <script>
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-    // Dark Mode
-    function toggleDarkMode() {
-      document.documentElement.classList.toggle("dark");
-      localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+// Dark Mode
+function toggleDarkMode() {
+  document.documentElement.classList.toggle("dark");
+  localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+}
+if (localStorage.getItem("darkMode") === "true") document.documentElement.classList.add("dark");
+
+function renderTasks() {
+  const list = document.getElementById("taskList");
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const filter = document.getElementById("filterSelect").value;
+  list.innerHTML = "";
+
+  const filtered = tasks.filter(t => t.text.toLowerCase().includes(search))
+                        .filter(t => filter === "completed" ? t.completed : filter === "pending" ? !t.completed : true);
+
+  filtered.forEach(task => {
+    const taskIndex = tasks.indexOf(task);
+    let deadlineColor = "bg-gray-50 dark:bg-gray-700";
+    if (task.deadline) {
+      const now = new Date();
+      const due = new Date(task.deadline);
+      if (due < now) deadlineColor = "bg-red-100 dark:bg-red-800";
+      else if (due - now < 24*60*60*1000) deadlineColor = "bg-yellow-100 dark:bg-yellow-800";
+      else deadlineColor = "bg-green-100 dark:bg-green-800";
     }
-    if (localStorage.getItem("darkMode") === "true") {
-      document.documentElement.classList.add("dark");
-    }
 
-    function renderTasks() {
-      const list = document.getElementById("taskList");
-      const search = document.getElementById("searchInput").value.toLowerCase();
-      const filter = document.getElementById("filterSelect").value;
-      list.innerHTML = "";
-
-      let filtered = tasks
-        .filter(task => task.text.toLowerCase().includes(search))
-        .filter(task => {
-          if (filter === "completed") return task.completed;
-          if (filter === "pending") return !task.completed;
-          return true;
-        });
-
-      filtered.forEach(task => {
-  const li = document.createElement("li");
-  let taskIndex = tasks.indexOf(task); // index จริงใน tasks array
-  // ... โค้ดสร้าง li
-  li.innerHTML = `
-    <div class="flex flex-col">
-      <div class="flex items-center gap-2">
-        <input type="checkbox" ${task.completed ? "checked" : ""} 
-          onclick="toggleComplete(${taskIndex})" class="w-4 h-4">
-        <span class="text-sm ${task.completed ? "line-through text-gray-500" : "dark:text-gray-200"}">
-          ${task.text}
-        </span>
+    const li = document.createElement("li");
+    li.className = `flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
+    li.innerHTML = `
+      <div class="flex flex-col">
+        <div class="flex items-center gap-2">
+          <input type="checkbox" ${task.completed ? "checked" : ""} onclick="toggleComplete(${taskIndex})" class="w-4 h-4">
+          <span class="text-sm ${task.completed ? "line-through text-gray-500" : "dark:text-gray-200"}">${task.text}</span>
+        </div>
+        <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category || "ทั่วไป"}</span>
+        ${task.deadline ? `<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>` : ""}
       </div>
-      <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category || "ทั่วไป"}</span>
-      ${task.deadline ? `<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>` : ""}
-    </div>
-    <div class="flex gap-2">
-      <button onclick="editTask(${taskIndex})"
-        class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
-      <button onclick="removeTask(${taskIndex})"
-        class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
-    </div>
-  `;
-  list.appendChild(li);
+      <div class="flex gap-2">
+        <button onclick="editTask(${taskIndex})" class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
+        <button onclick="removeTask(${taskIndex})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+
+  updateStats();
+}
+
+function updateStats() {
+  const stats = document.getElementById("stats");
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.completed).length;
+  const pending = total - completed;
+  stats.innerText = `งานทั้งหมด: ${total} | เสร็จแล้ว: ${completed} | ค้าง: ${pending}`;
+  document.getElementById("progressBar").style.width = total > 0 ? (completed/total*100) + "%" : "0%";
+}
+
+function addTask() {
+  const input = document.getElementById("taskInput");
+  const category = document.getElementById("categoryInput").value;
+  const deadline = document.getElementById("deadlineInput").value;
+  const taskText = input.value.trim();
+  if (taskText !== "") {
+    tasks.push({ text: taskText, completed: false, category, deadline });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    input.value = "";
+    document.getElementById("deadlineInput").value = "";
+    renderTasks();
+  }
+}
+
+function toggleComplete(index) {
+  tasks[index].completed = !tasks[index].completed;
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+  renderTasks();
+}
+
+function editTask(index) {
+  const newText = prompt("แก้ไขงาน:", tasks[index].text);
+  if (newText !== null && newText.trim() !== "") {
+    tasks[index].text = newText.trim();
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks();
+  }
+}
+
+function removeTask(index) {
+  if (confirm("ต้องการลบงานนี้จริงหรือไม่?")) {
+    tasks.splice(index, 1);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks();
+  }
+}
+
+function exportTasks() {
+  const blob = new Blob([JSON.stringify(tasks, null, 2)], {type:"application/json"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "tasks.json";
+  link.click();
+}
+
+function importTasks(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        tasks = imported;
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+      } else alert("ไฟล์ไม่ถูกต้อง");
+    } catch { alert("อ่านไฟล์ไม่สำเร็จ"); }
+  };
+  reader.readAsText(file);
+}
+
+// SortableJS
+new Sortable(document.getElementById('taskList'), {
+  animation: 150,
+  onEnd: function(evt){
+    const [moved] = tasks.splice(evt.oldIndex,1);
+    tasks.splice(evt.newIndex,0,moved);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks();
+  }
 });
 
-        li.className = `flex items-center justify-between p-3 rounded-lg shadow-sm animate__animated animate__fadeIn ${deadlineColor}`;
-
-        li.innerHTML = `
-          <div class="flex flex-col">
-            <div class="flex items-center gap-2">
-              <input type="checkbox" ${task.completed ? "checked" : ""} 
-                onclick="toggleComplete(${index})" class="w-4 h-4">
-              <span class="text-sm ${task.completed ? "line-through text-gray-500" : "dark:text-gray-200"}">
-                ${task.text}
-              </span>
-            </div>
-            <span class="text-xs text-gray-500 dark:text-gray-400">📂 ${task.category || "ทั่วไป"}</span>
-            ${task.deadline ? `<span class="text-xs text-gray-400 dark:text-gray-300">⏰ ${new Date(task.deadline).toLocaleString()}</span>` : ""}
-          </div>
-          <div class="flex gap-2">
-            <button onclick="editTask(${index})"
-              class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">✏</button>
-            <button onclick="removeTask(${index})"
-              class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">🗑</button>
-          </div>
-        `;
-        list.appendChild(li);
-      });
-
-      updateStats();
-    }
-
-    function updateStats() {
-      const stats = document.getElementById("stats");
-      const total = tasks.length;
-      const completed = tasks.filter(t => t.completed).length;
-      const pending = total - completed;
-
-      stats.innerText = `งานทั้งหมด: ${total} | เสร็จแล้ว: ${completed} | ค้าง: ${pending}`;
-      const progress = total > 0 ? (completed / total) * 100 : 0;
-      document.getElementById("progressBar").style.width = progress + "%";
-    }
-
-    function addTask() {
-      const input = document.getElementById("taskInput");
-      const category = document.getElementById("categoryInput").value;
-      const deadline = document.getElementById("deadlineInput").value;
-      const taskText = input.value.trim();
-      if (taskText !== "") {
-        tasks.push({ text: taskText, completed: false, category, deadline });
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        input.value = "";
-        document.getElementById("deadlineInput").value = "";
-        renderTasks();
-      }
-    }
-
-    function toggleComplete(index) {
-      tasks[index].completed = !tasks[index].completed;
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-      renderTasks();
-    }
-
-    function editTask(index) {
-      const newText = prompt("แก้ไขงาน:", tasks[index].text);
-      if (newText !== null && newText.trim() !== "") {
-        tasks[index].text = newText.trim();
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-      }
-    }
-
-    function removeTask(index) {
-      if (confirm("ต้องการลบงานนี้จริงหรือไม่?")) {
-        tasks.splice(index, 1);
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-      }
-    }
-
-    function exportTasks() {
-      const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "tasks.json";
-      link.click();
-    }
-
-    function importTasks(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (Array.isArray(imported)) {
-            tasks = imported;
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-            renderTasks();
-          } else {
-            alert("ไฟล์ไม่ถูกต้อง");
-          }
-        } catch {
-          alert("อ่านไฟล์ไม่สำเร็จ");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    // SortableJS
-    new Sortable(document.getElementById('taskList'), {
-      animation: 150,
-      onEnd: function(evt) {
-        const [moved] = tasks.splice(evt.oldIndex, 1);
-        tasks.splice(evt.newIndex, 0, moved);
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-      }
-    });
-
-    renderTasks();
-  </script>
+renderTasks();
+</script>
 </body>
 </html>
